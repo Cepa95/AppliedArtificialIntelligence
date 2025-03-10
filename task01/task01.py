@@ -35,16 +35,24 @@ def abc_stog(lenght):
 
 
 # a4
-def rjesenja(lst, currentLst=[]):
-    def isDivisible(numbers):
-        return sum(numbers) ** 2 % 23 == 0
+# def rjesenja(lst, currentLst=[]):
+#     def isDivisible(numbers):
+#         return sum(numbers) ** 2 % 23 == 0
+#     # print(currentLst)
+#     if isDivisible(currentLst) and len(currentLst) > 0:
+#         print(currentLst)
+#     for i in range(len(lst)):
+#         rjesenja(lst[i + 1 :], currentLst + [lst[i]])
 
-    # print(currentLst)
 
-    if isDivisible(currentLst) and len(currentLst) > 0:
-        print(currentLst)
-    for i in range(len(lst)):
-        rjesenja(lst[i + 1 :], currentLst + [lst[i]])
+def rjesenja(lista, currentLst=[]):
+    if currentLst:
+        if sum(currentLst) % 23 == 0:
+            print(currentLst)
+    if not lista:
+        return
+    rjesenja(lista[1:], currentLst)
+    rjesenja(lista[1:], currentLst + [lista[0]])
 
 
 # b
