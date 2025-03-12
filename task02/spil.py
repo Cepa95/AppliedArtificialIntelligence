@@ -13,16 +13,15 @@ class Spil:
             for color in colors:
                 deck.append((num, color))
         random.shuffle(deck)
-
         return deck
 
-    def splitCards(self, numOfCards):
-        hand =  []
+    def splitCard(self):
+        if self.cards:
+            return self.cards.pop()
+        return None
+
+    def dealHand(self, numOfCards):
+        hand = []
         for i in range(numOfCards):
-            if self.cards:
-                hand.append(self.cards.pop())
+            hand.append(self.splitCard())
         return hand
-
-
-spil = Spil()
-print(spil.generateDeck())
