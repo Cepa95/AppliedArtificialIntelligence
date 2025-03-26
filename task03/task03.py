@@ -135,16 +135,23 @@ def generate(state, stateGraph, visited):
     if sortedState in visited:
         return
 
-    visited.add(str(sortedState))
-    stateGraph[str(state)] = state.copy()
+    visited.add(sortedState)
+    stateGraph[sortedState] = state.copy()
+    if state.isTerminal():
+        return
 
-    for action in state.allActions():
-        nextState = state.copy()
-        nextState.boatContents = action
-        nextState.action(action)
-        generate(nextState, stateGraph, visited)
-        nextState.undoAction(action)
-        nextState.boatContents = ""
+    for act in state.allActions():
+        state.boatContents = act
+        """zato jer u akcijama radin cili pokret broda
+        triba i stanja izmedu pamtit, a ne odma prebacit
+        najbezbolnije je vamo prominit"""
+        if sortState(state) not in visited:
+            stateGraph[sortState(state)] = state.copy()
+        state.action(act)
+        generate(state, stateGraph, visited)
+        if sortState(state) not in visited:
+            stateGraph[sortState(state)] = state.copy()
+        state.undoAction(act)
 
     return stateGraph
 
@@ -166,7 +173,6 @@ def solutionDFS(state):
             path.reverse()
             for st in path:
                 print(st)
-
             # for st, parent in stateParents.items():
             #     print(f"state: {st} : parent: {parent}")
             return
@@ -251,10 +257,11 @@ def BestFS(state):
 if __name__ == "__main__":
     state = Stanje("VOKB  ||  ----")
 
-    # generate(state)
     stateGraph = generate(state, {}, set())
     for key, value in stateGraph.items():
         print(f"{key}")
+
+    print(f"\nGenerate => {len(stateGraph)} states")
 
     print("\nDFS solution:")
     solutionDFS(state)
