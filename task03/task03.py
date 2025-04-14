@@ -2,272 +2,243 @@ from copy import deepcopy
 
 
 class Stanje:
-    def __init__(self, initialStart):
-        self.left, self.right = initialStart.split("  ||  ")
-        self.boat = "left"
-        self.boatContents = ""
+    def __init__(self, left="VOK", boat="", right="", boatSide="L", lastUnloaded=""):
+        self.left = left
+        self.boat = boat
+        self.right = right
+        self.lastUnloaded = lastUnloaded
+        self.boatSide = boatSide
 
-    def __str__(self):
-        return f"{self.left}  ||  {self.right}  => Boat is {self.boat} -> BoatContents: {self.boatContents}"
+    def __repr__(self):
+        leftSide = "".join(sorted(self.left, reverse=True)) + (
+            "B" if self.boatSide == "L" else ""
+        )
+        rightSide = "".join(sorted(self.right, reverse=True)) + (
+            "B" if self.boatSide == "D" else ""
+        )
+        return f"left: {leftSide}   right: {rightSide}    => boat: {self.boat} "
 
     def allActions(self):
-        nextState = []
-        validationLst = ["V", "O", "K", "B"]
+        actions = []
+        currentSide = self.left if self.boatSide == "L" else self.right
 
-        if self.boat == "left":
-            for i in validationLst:
-                if i in self.left:
-                    nextState.append(i)
+        if self.boat:
+            actions.append(self.boat)  
         else:
-            for i in validationLst:
-                if i in self.right:
-                    nextState.append(i)
+            for obj in currentSide:
+                actions.append(obj)
 
-        return nextState
+            actions.append("")
+
+        return actions
 
     def nextStates(self):
-        state = []
+        nextStates = []
+        currentSide = self.left if self.boatSide == "L" else self.right
+        oppositeSide = self.right if self.boatSide == "L" else self.left
 
-        for i in self.allActions():
-            tmp = self.copy()
-            tmp.action(i)
-            state.append(tmp)
+        if self.boat:
+            newCurrentSide = currentSide + self.boat
+            nextStates.append(
+                Stanje(
+                    newCurrentSide if self.boatSide == "L" else oppositeSide,
+                    "",
+                    oppositeSide if self.boatSide == "L" else newCurrentSide,
+                    self.boatSide,
+                )
+            )
+        else:
+            for obj in currentSide:
+                newCurrentSide = currentSide.replace(obj, "")
+                newBoatSide = "D" if self.boatSide == "L" else "L"
+                nextStates.append(
+                    Stanje(
+                        newCurrentSide if self.boatSide == "L" else oppositeSide,
+                        obj,
+                        oppositeSide if self.boatSide == "L" else newCurrentSide,
+                        newBoatSide,
+                    )
+                )
 
-        return state
+            newBoatSide = "D" if self.boatSide == "L" else "L"
+            nextStates.append(
+                Stanje(
+                    currentSide if self.boatSide == "L" else oppositeSide,
+                    "",
+                    oppositeSide if self.boatSide == "L" else currentSide,
+                    newBoatSide,
+                )
+            )
+
+        return list(reversed(nextStates))
 
     def isSolved(self):
-        if self.left != "----":
-            return False
-        validationLst = ["V", "O", "K", "B"]
-        for char in validationLst:
-            if char not in self.right:
-                return False
-        return True
+        return (
+            "".join(sorted(self.right, reverse=True)) == "VOK" and self.boatSide == "D"
+        )
 
     def isTerminal(self):
-        if ("V" in self.left and "O" in self.left and "B" not in self.left) or (
-            "V" in self.right and "O" in self.right and "B" not in self.right
+        if ("V" in self.left and "O" in self.left and "D" in self.boatSide) or (
+            "V" in self.right and "O" in self.right and "L" not in self.boatSide
         ):
             return True
-        elif ("O" in self.left and "K" in self.left and "B" not in self.left) or (
-            "O" in self.right and "K" in self.right and "B" not in self.right
+        elif ("O" in self.left and "K" in self.left and "D" in self.boatSide) or (
+            "O" in self.right and "K" in self.right and "L" in self.boatSide
         ):
             return True
         elif self.isSolved():
             return True
+        elif self.boat == "" and not self.isSolved() and self.left == "VOK" and self.boatSide == "D":
+            return True
         return False
 
-    def move(self, act, fromSide, toSide):
-        fromSide = fromSide.replace(act, "-", 1).replace("B", "-", 1)
-        toSide = toSide.replace("-", act, 1).replace("-", "B", 1)
-        return fromSide, toSide
-
-    def cleanUp(self):
-        while self.left.count("B") > 1:
-            self.left = self.left.replace("B", "-", 1)
-        while self.right.count("B") > 1:
-            self.right = self.right.replace("B", "-", 1)
-
-    def undoAction(self, act):
-        if self.boat == "right":
-            self.right, self.left = self.move(act, self.right, self.left)
-            self.boat = "left"
+    def action(self, obj):
+        if obj:
+            if self.boatSide == "L":
+                if obj in self.boat:
+                    self.boat, self.left, self.lastUnloaded = "", self.left + obj, obj
+                else:
+                    self.left = self.left.replace(obj, "")
+                    self.boat, self.lastUnloaded, self.boatSide = obj, "", "D"
+            else:
+                if obj in self.boat:
+                    self.boat, self.right, self.lastUnloaded = "", self.right + obj, obj
+                else:
+                    self.right = self.right.replace(obj, "")
+                    self.boat, self.lastUnloaded, self.boatSide = obj, "", "L"
         else:
-            self.left, self.right = self.move(act, self.left, self.right)
-            self.boat = "right"
+            self.boatSide = "D" if self.boatSide == "L" else "L"
+        return self
 
-        self.boatContents = act  # za algoritme, ako bude tribalo
-        self.cleanUp()
-        return self.left, self.right
-
-    def action(self, act):
-        self.boatContents = act  # isto
-        if self.boat == "left":
-            self.left, self.right = self.move(act, self.left, self.right)
-            self.boat = "right"
+    def undoAction(self, obj):
+        if obj:
+            if self.lastUnloaded == obj and not self.boat:
+                if self.boatSide == "L":
+                    self.left = self.left.replace(obj, "")
+                else:
+                    self.right = self.right.replace(obj, "")
+                self.boat, self.lastUnloaded = obj, ""
+            else:
+                if self.boatSide == "L":
+                    self.right += obj
+                    self.boatSide = "D"
+                else:
+                    self.left += obj
+                    self.boatSide = "L"
+                self.boat = ""
         else:
-            self.right, self.left = self.move(act, self.right, self.left)
-            self.boat = "left"
-
-        self.cleanUp()
+            self.boatSide = "D" if self.boatSide == "L" else "L"
+        return self
 
     def copy(self):
         return deepcopy(self)
 
 
-def sortState(state):
-    sortLeft = "".join(sorted(state.left))
-    sortRight = "".join(sorted(state.right))
-    return f"{sortLeft} || {sortRight} => Boat is {state.boat} || BoatContents: {state.boatContents}"
-
-
-# def generate(state):
-#     visited = set()
-#     stack = [state]
-
-#     while stack:
-#         currentState = stack.pop()
-#         sortedState = sortState(currentState)
-
-#         if sortedState in visited:
-#             continue
-
-#         # if currentState.isTerminal():
-#         #      continue
-
-#         print(currentState)
-#         # print(sortedState)
-#         visited.add(sortedState)
-
-#         if currentState.isTerminal():
-#             continue
-
-#         for action in currentState.allActions():
-#             nextState = currentState.copy()
-#             nextState.action(action)
-#             stack.append(nextState)
-
-#     return
-
-
-def generate(state, stateGraph, visited):
-    sortedState = sortState(state)
-    if sortedState in visited:
+def generate(startState, dictState):
+    state = str(startState)
+    if state in dictState:
         return
+    if not (startState.isTerminal() and startState.boat == "" and not startState.isSolved()) or (
+        startState.left == "VOK" and startState.boatSide == "D"
+    ):
+        dictState[state] = startState.copy()
+    for obj in startState.allActions():
+        newState = startState.copy().action(obj)
+        generate(newState, dictState)
 
-    visited.add(sortedState)
-    stateGraph[sortedState] = state.copy()
-    if state.isTerminal():
-        return
+    return dictState
 
-    for act in state.allActions():
-        state.boatContents = act
-        """zato jer u akcijama radin cili pokret broda
-        triba i stanja izmedu pamtit, a ne odma prebacit
-        najbezbolnije je vamo prominit"""
-        if sortState(state) not in visited:
-            stateGraph[sortState(state)] = state.copy()
-        state.action(act)
-        generate(state, stateGraph, visited)
-        if sortState(state) not in visited:
-            stateGraph[sortState(state)] = state.copy()
-        state.undoAction(act)
-
-    return stateGraph
-
-
-def solutionDFS(state):
-    stack = [state]
-    stateParents = {str(state): None}
-    visited = set()
-
-    while stack:
-        currentState = stack.pop()
-        visited.add(str(currentState))
-
-        if currentState.isSolved():
-            path = []
-            while currentState is not None:
-                path.append(str(currentState))
-                currentState = stateParents[str(currentState)]
-            path.reverse()
-            for st in path:
-                print(st)
-            # for st, parent in stateParents.items():
-            #     print(f"state: {st} : parent: {parent}")
-            return
-
-        if currentState.isTerminal():
-            continue
-
-        for nextState in currentState.nextStates():
-            if str(nextState) not in visited:
-                stack.append(nextState)
-                stateParents[str(nextState)] = str(currentState)
-
-    return None
 
 
 def solutionBFS(state):
-    queue = [state]
-    stateParents = {str(state): None}
     visited = set()
+    queue = [state]
+    parents = {str(state): None}
 
     while queue:
         currentState = queue.pop(0)
-        visited.add(str(currentState))
+        if str(currentState) not in visited:
+            visited.add(str(currentState))
 
-        if currentState.isSolved():
-            path = []
-            while currentState is not None:
-                path.append(str(currentState))
-                currentState = stateParents[str(currentState)]
-            path.reverse()
-            for st in path:
-                print(st)
-            return
+            if currentState.isSolved():
+                return parents
 
-        if currentState.isTerminal():
-            continue
-
-        for nextState in currentState.nextStates():
-            if str(nextState) not in visited:
-                queue.append(nextState)
-                stateParents[str(nextState)] = str(currentState)
+            for nextState in currentState.nextStates():
+                if str(nextState) not in visited:
+                    queue.append(nextState)
+                    parents[str(nextState)] = currentState
 
     return None
 
 
-def heuristic(state):
-    return sum(1 for char in state.right if char in "VOK")
-
-
-def BestFS(state):
-    queue = [state]
-    stateParents = {str(state): None}
+def solutionDFS(state):
     visited = set()
+    stack = [state]
+    parents = {str(state): None}
 
+    while stack:
+        currentState = stack.pop()
+        if str(currentState) not in visited:
+            visited.add(str(currentState))
+
+            if currentState.isSolved():
+                return parents
+
+            for nextState in currentState.nextStates():
+                if str(nextState) not in visited:
+                    stack.append(nextState)
+                    parents[str(nextState)] = currentState
+                   
+
+    return None
+
+
+def solutionBestFS(state):
+    def heuristic(state):
+        return sum(1 for char in state.right if char in "VOK")
+
+    queue = [(heuristic(state), state)]
+    stateParents = {state: None}
+    visited = set()
     while queue:
-        queue.sort(key=heuristic, reverse=True)
-        currentState = queue.pop(0)
+        queue.sort(key=lambda x: x[0])
+        _, currentState = queue.pop(0)
         visited.add(str(currentState))
 
         if currentState.isSolved():
-            path = []
-            while currentState is not None:
-                path.append(str(currentState))
-                currentState = stateParents[str(currentState)]
-            path.reverse()
-            for st in path:
-                print(st)
-
-            return path
+            return stateParents
 
         if currentState.isTerminal():
             continue
 
         for nextState in currentState.nextStates():
             if str(nextState) not in visited:
-                queue.append(nextState)
-                stateParents[str(nextState)] = str(currentState)
+                visited.add(str(nextState))
+                queue.append((heuristic(nextState), nextState))
+                stateParents[nextState] = currentState
 
     return None
 
 
 if __name__ == "__main__":
-    state = Stanje("VOKB  ||  ----")
+    startState = Stanje()
+    states = generate(startState, {})
+    dfs = solutionDFS(startState)
+    bfs = solutionBFS(startState)
+    bestFS = solutionBestFS(startState)
+    for state in states:
+        print(state)
+    print("Number of states: ", len(states))
 
-    stateGraph = generate(state, {}, set())
-    for key, value in stateGraph.items():
-        print(f"{key}")
-
-    print(f"\nGenerate => {len(stateGraph)} states")
-
-    print("\nDFS solution:")
-    solutionDFS(state)
-
-    print("\nBFS solution:")
-    solutionBFS(state)
-
-    print("\nBestFS solution:")
-    BestFS(state)
+    print()
+    print("Dfs", len(dfs))
+    for i in dfs:
+        print(i)
+    print()
+    print("Bfs", len(bfs))
+    for i in bfs:
+        print(i)
+    print()
+    print("BestFS:", len(bestFS))
+    for i in bestFS:
+        print(i)
