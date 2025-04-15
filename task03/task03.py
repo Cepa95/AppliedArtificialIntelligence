@@ -23,7 +23,7 @@ class Stanje:
         currentSide = self.left if self.boatSide == "L" else self.right
 
         if self.boat:
-            actions.append(self.boat)  
+            actions.append(self.boat)
         else:
             for obj in currentSide:
                 actions.append(obj)
@@ -88,7 +88,12 @@ class Stanje:
             return True
         elif self.isSolved():
             return True
-        elif self.boat == "" and not self.isSolved() and self.left == "VOK" and self.boatSide == "D":
+        elif (
+            self.boat == ""
+            and not self.isSolved()
+            and self.left == "VOK"
+            and self.boatSide == "D"
+        ):
             return True
         return False
 
@@ -138,16 +143,15 @@ def generate(startState, dictState):
     state = str(startState)
     if state in dictState:
         return
-    if not (startState.isTerminal() and startState.boat == "" and not startState.isSolved()) or (
-        startState.left == "VOK" and startState.boatSide == "D"
-    ):
+    if not (
+        startState.isTerminal() and startState.boat == "" and not startState.isSolved()
+    ) or (startState.left == "VOK" and startState.boatSide == "D"):
         dictState[state] = startState.copy()
     for obj in startState.allActions():
         newState = startState.copy().action(obj)
         generate(newState, dictState)
 
     return dictState
-
 
 
 def solutionBFS(state):
@@ -161,7 +165,11 @@ def solutionBFS(state):
             visited.add(str(currentState))
 
             if currentState.isSolved():
+                print("parents", parents)
                 return parents
+
+            if currentState.isTerminal():
+                continue
 
             for nextState in currentState.nextStates():
                 if str(nextState) not in visited:
@@ -188,7 +196,6 @@ def solutionDFS(state):
                 if str(nextState) not in visited:
                     stack.append(nextState)
                     parents[str(nextState)] = currentState
-                   
 
     return None
 
@@ -201,7 +208,7 @@ def solutionBestFS(state):
     stateParents = {state: None}
     visited = set()
     while queue:
-        queue.sort(key=lambda x: x[0])
+        queue.sort(key=lambda x: x[0], reverse=True)
         _, currentState = queue.pop(0)
         visited.add(str(currentState))
 
@@ -231,11 +238,11 @@ if __name__ == "__main__":
     print("Number of states: ", len(states))
 
     print()
-    print("Dfs", len(dfs))
+    print("Dfs:", len(dfs))
     for i in dfs:
         print(i)
     print()
-    print("Bfs", len(bfs))
+    print("Bfs:", len(bfs))
     for i in bfs:
         print(i)
     print()
