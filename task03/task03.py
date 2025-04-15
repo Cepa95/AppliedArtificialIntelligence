@@ -70,7 +70,7 @@ class Stanje:
                 )
             )
 
-        return list(reversed(nextStates))
+        return list(nextStates)
 
     def isSolved(self):
         return (
@@ -165,7 +165,6 @@ def solutionBFS(state):
             visited.add(str(currentState))
 
             if currentState.isSolved():
-                print("parents", parents)
                 return parents
 
             if currentState.isTerminal():
@@ -191,6 +190,9 @@ def solutionDFS(state):
 
             if currentState.isSolved():
                 return parents
+            
+            if currentState.isTerminal():
+                continue
 
             for nextState in currentState.nextStates():
                 if str(nextState) not in visited:
