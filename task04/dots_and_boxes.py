@@ -45,21 +45,14 @@ class State:
         )
         return s + "\n"
 
-    def __hash__(self):
-        return hash((
-            frozenset(self.lines),
-            frozenset(self.boxes[0]),
-            frozenset(self.boxes[1]),
-            self.turn
-        ))
-
-    def __eq__(self, other):
-        return (
-            self.lines == other.lines and
-            self.boxes[0] == other.boxes[0] and
-            self.boxes[1] == other.boxes[1] and
-            self.turn == other.turn
-        )
+    def get_key(self):
+        """Generira jedinstveni string key za trenutno stanje igre."""
+        # Pretvori linije u sortiranu listu i zatim u string
+        lines_key = ",".join(f"{line[0]}-{line[1]}" for line in sorted(self.lines))
+        # Pretvori zatvorene kvadrate u sortirane stringove
+        boxes_key_p1 = ",".join(f"{box}" for box in sorted(self.boxes[0]))
+        boxes_key_p2 = ",".join(f"{box}" for box in sorted(self.boxes[1]))
+        return f"lines:{lines_key}|boxes_p1:{boxes_key_p1}|boxes_p2:{boxes_key_p2}|turn:{self.turn}|step:{self.step}"
 
     def copy(self):
         cstate = State(self.size)

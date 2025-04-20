@@ -47,4 +47,4 @@ def compare(agent1, agent2, ntimes):
 agent1 = MinimaxAgent(1)
 agent2 = MCTSAgent(200) 
 agent3 = RandomAgent()
-score = compare(agent2, agent3, 1000)
+score = compare(agent1, agent3, 1000)
