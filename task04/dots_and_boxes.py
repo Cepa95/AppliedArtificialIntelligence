@@ -48,7 +48,10 @@ class State:
     def get_key(self):
         """Generira jedinstveni string key za trenutno stanje igre."""
         # Pretvori linije u sortiranu listu i zatim u string
-        lines_key = ",".join(f"{line[0]}-{line[1]}" for line in sorted(self.lines))
+        lines_key = ",".join(
+            f"{line[0]}-{line[1]}"
+            for line in sorted(set(tuple(sorted(line)) for line in self.lines))
+        )
         # Pretvori zatvorene kvadrate u sortirane stringove
         boxes_key_p1 = ",".join(f"{box}" for box in sorted(self.boxes[0]))
         boxes_key_p2 = ",".join(f"{box}" for box in sorted(self.boxes[1]))
