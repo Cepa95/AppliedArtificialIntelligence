@@ -2,6 +2,7 @@ from math import sqrt, log
 from random import choice
 from dots_and_boxes import State
 
+
 class Node:
     def __init__(self, state: State):
         self.state = state
@@ -60,7 +61,7 @@ class MCTSAgent:
     def __init__(self, nrolls=100, uct_c=0.5):
         self.uct_c = uct_c
         self.nrolls = nrolls
-        self.memory = {} 
+        self.memory = {}
 
     def get_node(self, state):
         key = state.get_key()
@@ -110,6 +111,7 @@ class MCTSAgent:
         self.root = self.get_node(state)
         for i in range(self.nrolls):
             self.mcts()
+
         return self.best()
 
 

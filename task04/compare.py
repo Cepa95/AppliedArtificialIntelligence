@@ -55,7 +55,7 @@ from dots_and_boxes import State
 from minimax import MinimaxAgent
 from mcts import MCTSAgent
 from randombot import RandomAgent
-game_size = 3
+game_size = 5
 
 def match(agent1, agent2, show=False):
     game = State(game_size)
@@ -119,14 +119,14 @@ def compare(agent1_class, agent2_class, ntimes, agent1_kwargs=None, agent2_kwarg
     return score
 
 
-score = compare(
-    MCTSAgent, RandomAgent, 1000, 
-    agent1_kwargs={'nrolls': 200, 'uct_c': 0.5}, 
-    agent2_kwargs={}
-)
 # score = compare(
-#     MCTSAgent, MinimaxAgent, 1000, 
+#     MCTSAgent, RandomAgent, 1000, 
 #     agent1_kwargs={'nrolls': 200, 'uct_c': 0.5}, 
-#     agent2_kwargs={'maxdepth': 1}
+#     agent2_kwargs={}
 # )
+score = compare(
+    MCTSAgent, MinimaxAgent, 1000, 
+    agent1_kwargs={'nrolls': 100, 'uct_c': 0.5}, 
+    agent2_kwargs={'maxdepth': 3}
+)
 print(score)

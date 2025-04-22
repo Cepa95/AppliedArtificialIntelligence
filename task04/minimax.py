@@ -77,8 +77,8 @@ class MinimaxAgent:
             value = beta
 
         """Spremanje u transpozicijsku tablicu"""
-        if best is not None:
-            self.transposition_table[state_key] = {
+        # if best is not None:
+        self.transposition_table[state_key] = {
                 "best_action": best,
                 "value": value,
                 "depth": depth,

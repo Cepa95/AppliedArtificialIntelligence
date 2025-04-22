@@ -169,5 +169,5 @@ if __name__ == "__main__":
         astr = str(game)
         assert bstr == astr
 
-    game = State(3)
+    game = State(5)
     random_test(game)
